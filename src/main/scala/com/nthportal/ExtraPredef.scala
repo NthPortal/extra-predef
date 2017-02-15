@@ -10,7 +10,7 @@ package com.nthportal
   * @see [[ExtraPredefCore]]
   */
 trait ExtraPredef extends ExtraPredefCore {
-  implicit final class ExtraRichExtendsAny[A](private val a: A) {
+  implicit final class ExtraRichNullable[A](private val a: A) {
     /**
       * Asserts that `this` is not `null`.
       *
@@ -19,7 +19,7 @@ trait ExtraPredef extends ExtraPredefCore {
       */
     @throws[NullPointerException]
     def nonNull: A = {
-      if (a == null) throw new NullPointerException("ExtraRichExtendsAny.nonNull")
+      if (a == null) throw new NullPointerException("ExtraRichNullable.nonNull")
       a
     }
   }

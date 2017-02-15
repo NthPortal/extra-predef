@@ -1,7 +1,7 @@
 package com
 
 package object nthportal extends ExtraPredefCore {
-  implicit final class ExtraRichExtendsAny[A](private val a: A) extends AnyVal {
+  implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**
       * Asserts that `this` is not `null`.
       *
@@ -10,7 +10,7 @@ package object nthportal extends ExtraPredefCore {
       */
     @throws[NullPointerException]
     def nonNull: A = {
-      if (a == null) throw new NullPointerException("ExtraRichExtendsAny.nonNull")
+      if (a == null) throw new NullPointerException("ExtraRichNullable.nonNull")
       a
     }
   }
