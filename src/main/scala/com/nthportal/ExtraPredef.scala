@@ -23,4 +23,10 @@ trait ExtraPredef extends ExtraPredefCore {
       a
     }
   }
+
+  implicit final class ExtraRichOrderedInt(private val prev: Int) {
+    def thenCompare[A](a1: A, a2: A)(implicit ord: Ordering[A]): Int = {
+      if (prev != 0) prev else ord.compare(a1, a2)
+    }
+  }
 }
