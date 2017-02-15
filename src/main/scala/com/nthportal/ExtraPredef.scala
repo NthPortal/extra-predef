@@ -34,4 +34,14 @@ trait ExtraPredef extends ExtraPredefCore {
       if (prev != 0) prev else ord.compare(a1, a2)
     }
   }
+
+  implicit final class ExtraRichOrdering[T](private val ord1: Ordering[T]) {
+    def thenOrderingBy[S](f: T => S)(implicit ord2: Ordering[S]): Ordering[T] = (x, y) => {
+      val res1 = ord1.compare(x, y)
+      if (res1 != 0) res1 else ord2.compare(f(x), f(y))
+    }
+
+    @inline
+    def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+  }
 }

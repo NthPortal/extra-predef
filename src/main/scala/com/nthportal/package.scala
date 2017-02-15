@@ -25,4 +25,11 @@ package object nthportal extends ExtraPredefCore {
       if (prev != 0) prev else ord.compare(a1, a2)
     }
   }
+
+  implicit final class ExtraRichOrdering[T](private val ord: Ordering[T]) extends AnyVal {
+    def thenOrderingBy[S: Ordering](f: T => S): Ordering[T] = (x, y) => ord.compare(x, y).thenCompare(f(x), f(y))
+
+    @inline
+    def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+  }
 }
