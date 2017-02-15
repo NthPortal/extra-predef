@@ -4,12 +4,12 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
 
-class ExtraPredefTest extends FlatSpec with Matchers {
-  import ExtraPredefTest._
+class PackagePredefTest extends FlatSpec with Matchers {
+  import PackagePredefTest._
 
   private val _null: Any = null
 
-  behavior of "ExtraPredef"
+  behavior of "package object Predef"
 
   it should "check for null correctly" in {
     a [NullPointerException] should be thrownBy {_null.nonNull}
@@ -68,7 +68,7 @@ class ExtraPredefTest extends FlatSpec with Matchers {
   }
 }
 
-object ExtraPredefTest {
+object PackagePredefTest {
   case class BasicOrdered(int: Int) extends Ordered[BasicOrdered] {
     override def compare(that: BasicOrdered): Int = this.int compare that.int
   }
