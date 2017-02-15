@@ -1,4 +1,4 @@
-package com.nthportal
+package com.nthportal.extrapredef
 
 /**
   * [[ExtraPredef]] sans implicit classes, because implicit classes

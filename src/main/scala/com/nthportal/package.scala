@@ -1,5 +1,7 @@
 package com
 
+import com.nthportal.extrapredef.ExtraPredefCore
+
 package object nthportal extends ExtraPredefCore {
   implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**

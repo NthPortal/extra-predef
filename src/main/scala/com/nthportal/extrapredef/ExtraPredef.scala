@@ -1,4 +1,4 @@
-package com.nthportal
+package com.nthportal.extrapredef
 
 /**
   * An extra `Predef` which has more methods and implicit classes
