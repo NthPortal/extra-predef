@@ -2,6 +2,8 @@ package com.nthportal
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.implicitConversions
+
 class ExtraPredefTest extends FlatSpec with Matchers {
   private val _null: Any = null
 
@@ -19,14 +21,20 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     "foo" ?? null should equal ("foo")
   }
 
-  it should "chain ordering calls" in {
-    case class OrderingChainTest(a: Int, b: Int, c: Int) extends Ordered[OrderingChainTest] {
+  it should "chain comparisons" in {
+    case class BasicOrdered(int: Int) extends Ordered[BasicOrdered] {
+      override def compare(that: BasicOrdered): Int = this.int compare that.int
+    }
+
+    case class OrderingChainTest(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest] {
       override def compare(that: OrderingChainTest): Int = {
         (this.a compare that.a)
           .thenCompare(this.b, that.b)
           .thenCompare(this.c, that.c)
       }
     }
+
+    implicit def int2BasicOrdered(int: Int): BasicOrdered = BasicOrdered(int)
 
     val test = OrderingChainTest(1, 2, 3)
 
