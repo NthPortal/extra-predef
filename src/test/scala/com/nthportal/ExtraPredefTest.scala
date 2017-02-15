@@ -3,13 +3,20 @@ package com.nthportal
 import org.scalatest.{FlatSpec, Matchers}
 
 class ExtraPredefTest extends FlatSpec with Matchers {
+  private val _null: Any = null
 
   behavior of "ExtraPredef"
 
   it should "check for null correctly" in {
-    a [NullPointerException] should be thrownBy {(null: Any).nonNull}
+    a [NullPointerException] should be thrownBy {_null.nonNull}
 
     noException should be thrownBy {"a string".nonNull}
+  }
+
+  it should "coalesce null references correctly" in {
+    _null ?? "bar" should equal ("bar")
+    "foo" ?? "bar" should equal ("foo")
+    "foo" ?? null should equal ("foo")
   }
 
   it should "chain ordering calls" in {

@@ -13,6 +13,11 @@ package object nthportal extends ExtraPredefCore {
       if (a == null) throw new NullPointerException("ExtraRichNullable.nonNull")
       a
     }
+
+    def orIfNull(value: A): A = if (a != null) a else value
+
+    @inline
+    def ??(value: A): A = orIfNull(value)
   }
 
   implicit final class ExtraRichOrderedInt(private val prev: Int) extends AnyVal {
