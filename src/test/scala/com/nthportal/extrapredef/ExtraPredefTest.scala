@@ -79,8 +79,13 @@ class ExtraPredefTest extends FlatSpec with Matchers {
   }
 
   it should "invert `Option`s" in {
-    Some("string").invertWith("none") shouldBe empty
-    None.invertWith("some").get should be ("some")
+    Some("string").invert("none") shouldBe empty
+    None.invert("some").get should be ("some")
+
+    Some("string").invertWith(Some("none")) shouldBe empty
+    Some("string").invertWith(None) shouldBe empty
+    None.invertWith(Some("some")).get should be ("some")
+    None.invertWith(None) shouldBe empty
   }
 }
 

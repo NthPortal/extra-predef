@@ -173,9 +173,21 @@ trait ExtraPredef extends ExtraPredefCore {
       * is empty, or an empty Option if this Option is defined.
       *
       * @param value the value to use if this Option is empty
+      * @tparam B the type of the returned Option
       * @return an Option containing the specified the specified value if this
       *         Option is empty, or an empty Option if this Option is defined
       */
-    def invertWith(value: => A): Option[A] = if (opt.isEmpty) Some(value) else None
+    def invert[B](value: => B): Option[B] = invertWith(Some(value))
+
+    /**
+      * Returns the specified [[Option]] if this Option is empty, or an empty
+      * Option if this Option is defined.
+      *
+      * @param option the option to return if this Option is empty
+      * @tparam B the type of the returned Option
+      * @return the specified Option if this Option is empty, or an empty
+      *         Option if this Option is defined
+      */
+    def invertWith[B](option: => Option[B]): Option[B] = if (opt.isEmpty) option else None
   }
 }
