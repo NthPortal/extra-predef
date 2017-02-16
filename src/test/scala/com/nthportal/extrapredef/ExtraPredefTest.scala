@@ -78,6 +78,18 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     a [NoSuchElementException] should be thrownBy {Await.result(None.toFuture, Duration.Zero)}
   }
 
+  it should "transform `Option`s" in {
+    Some("string").transform(s => Some(s.toUpperCase), Some("none")).get should be ("STRING")
+    Some("string").transform(s => Some(s.toUpperCase), None).get should be ("STRING")
+    Some("string").transform(_ => None, Some("none")) shouldBe empty
+    Some("string").transform(_ => None, None) shouldBe empty
+
+    None.transform((_: Nothing) => Some("some"), Some("none")).get should be ("none")
+    None.transform((_: Nothing) => Some("some"), None) shouldBe empty
+    None.transform((_: Nothing) => None, Some("none")).get should be ("none")
+    None.transform((_: Nothing) => None, None) shouldBe empty
+  }
+
   it should "invert `Option`s" in {
     Some("string").invert("none") shouldBe empty
     None.invert("some").get should be ("some")

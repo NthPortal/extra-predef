@@ -169,25 +169,40 @@ trait ExtraPredef extends ExtraPredefCore {
     def toFuture: Future[A] = Future.fromTry(Try(opt.get))
 
     /**
+      * Returns an [[Option]] by applying `ifDefined` to the value of this
+      * Option if this Option is defined, or `ifEmpty` if this Option is empty.
+      *
+      * @param ifDefined a function to apply to the value of this Option
+      *                  if it is defined
+      * @param ifEmpty   an Option to return if this Option is empty
+      * @tparam B the type of the Option returned
+      * @return an Option by applying `ifDefined` to the value of this Option
+      *         if this Option is defined, or `ifEmpty` if this Option is empty
+      */
+    def transform[B](ifDefined: A => Option[B], ifEmpty: => Option[B]): Option[B] = {
+      if (opt.isDefined) ifDefined(opt.get) else ifEmpty
+    }
+
+    /**
       * Returns an [[Option]] containing the specified value if this Option
       * is empty, or an empty Option if this Option is defined.
       *
-      * @param value the value to use if this Option is empty
+      * @param ifEmpty the value to use if this Option is empty
       * @tparam B the type of the returned Option
       * @return an Option containing the specified the specified value if this
       *         Option is empty, or an empty Option if this Option is defined
       */
-    def invert[B](value: => B): Option[B] = invertWith(Some(value))
+    def invert[B](ifEmpty: => B): Option[B] = invertWith(Some(ifEmpty))
 
     /**
       * Returns the specified [[Option]] if this Option is empty, or an empty
       * Option if this Option is defined.
       *
-      * @param option the option to return if this Option is empty
+      * @param ifEmpty the option to return if this Option is empty
       * @tparam B the type of the returned Option
       * @return the specified Option if this Option is empty, or an empty
       *         Option if this Option is defined
       */
-    def invertWith[B](option: => Option[B]): Option[B] = if (opt.isEmpty) option else None
+    def invertWith[B](ifEmpty: => Option[B]): Option[B] = if (opt.isEmpty) ifEmpty else None
   }
 }
