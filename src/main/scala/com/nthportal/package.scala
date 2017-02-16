@@ -2,6 +2,9 @@ package com
 
 import com.nthportal.extrapredef.ExtraPredefCore
 
+import scala.concurrent.Future
+import scala.util.Try
+
 package object nthportal extends ExtraPredefCore {
   implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**
@@ -124,5 +127,18 @@ package object nthportal extends ExtraPredefCore {
       */
     @inline
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+  }
+
+  implicit final class ExtraRichOption[A](private val opt: Option[A]) extends AnyVal {
+    /**
+      * Returns a completed [[Future]] from this [[Option]].
+      *
+      * The Future returned:
+      *  - succeeds with the value of this Option if this Option is defined
+      *  - fails with a `NoSuchElementException` if this Option is empty
+      *
+      * @return a completed Future from this Option
+      */
+    def toFuture: Future[A] = Future.fromTry(Try(opt.get))
   }
 }

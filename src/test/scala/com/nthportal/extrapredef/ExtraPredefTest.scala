@@ -2,6 +2,8 @@ package com.nthportal.extrapredef
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 
 class ExtraPredefTest extends FlatSpec with Matchers {
@@ -68,6 +70,12 @@ class ExtraPredefTest extends FlatSpec with Matchers {
 
     test shouldNot be > OrderingChainTest(1, 2, 3)
     test shouldNot be < OrderingChainTest(1, 2, 3)
+  }
+
+  it should "create equivalent `Future`s from `Option`s" in {
+    Await.result(Some("string").toFuture, Duration.Zero) should equal ("string")
+
+    a [NoSuchElementException] should be thrownBy {Await.result(None.toFuture, Duration.Zero)}
   }
 }
 

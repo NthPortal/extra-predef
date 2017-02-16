@@ -1,5 +1,8 @@
 package com.nthportal.extrapredef
 
+import scala.concurrent.Future
+import scala.util.Try
+
 /**
   * An extra `Predef` which has more methods and implicit classes
   * than [[scala.Predef]].
@@ -151,5 +154,18 @@ trait ExtraPredef extends ExtraPredefCore {
       */
     @inline
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+  }
+
+  implicit final class ExtraRichOption[A](private val opt: Option[A]) {
+    /**
+      * Returns a completed [[Future]] from this [[Option]].
+      *
+      * The Future returned:
+      *  - succeeds with the value of this Option if this Option is defined
+      *  - fails with a `NoSuchElementException` if this Option is empty
+      *
+      * @return a completed Future from this Option
+      */
+    def toFuture: Future[A] = Future.fromTry(Try(opt.get))
   }
 }
