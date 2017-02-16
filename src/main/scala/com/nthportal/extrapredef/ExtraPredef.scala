@@ -167,5 +167,15 @@ trait ExtraPredef extends ExtraPredefCore {
       * @return a completed Future from this Option
       */
     def toFuture: Future[A] = Future.fromTry(Try(opt.get))
+
+    /**
+      * Returns an [[Option]] containing the specified value if this Option
+      * is empty, or an empty Option if this Option is defined.
+      *
+      * @param value the value to use if this Option is empty
+      * @return an Option containing the specified the specified value if this
+      *         Option is empty, or an empty Option if this Option is defined
+      */
+    def invertWith(value: => A): Option[A] = if (opt.isEmpty) Some(value) else None
   }
 }

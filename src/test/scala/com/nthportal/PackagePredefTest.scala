@@ -74,6 +74,11 @@ class PackagePredefTest extends FlatSpec with Matchers {
 
     a [NoSuchElementException] should be thrownBy {Await.result(None.toFuture, Duration.Zero)}
   }
+
+  it should "invert `Option`s" in {
+    Some("string").invertWith("none") shouldBe empty
+    None.invertWith("some").get should be ("some")
+  }
 }
 
 object PackagePredefTest {
