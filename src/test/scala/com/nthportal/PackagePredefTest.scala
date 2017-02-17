@@ -2,6 +2,8 @@ package com.nthportal
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 
 class PackagePredefTest extends FlatSpec with Matchers {
@@ -46,6 +48,16 @@ class PackagePredefTest extends FlatSpec with Matchers {
     test shouldNot be < ComparisonChainTest(1, 2, 3)
   }
 
+  it should "compare natural ordering correctly" in {
+    (BasicOrdered(1) <> 2) should be (true)
+    (BasicOrdered(2) <> 1) should be (true)
+    (BasicOrdered(1) <> 1) should be (false)
+
+    (BasicOrdered(1) !<> 2) should be (false)
+    (BasicOrdered(2) !<> 1) should be (false)
+    (BasicOrdered(1) !<> 1) should be (true)
+  }
+
   it should "chain orderings" in {
     val ordering = Ordering.by[OrderingChainTest, Int](_.a).thenBy(_.b).thenBy(_.c)
 
@@ -65,6 +77,34 @@ class PackagePredefTest extends FlatSpec with Matchers {
 
     test shouldNot be > OrderingChainTest(1, 2, 3)
     test shouldNot be < OrderingChainTest(1, 2, 3)
+  }
+
+  it should "create equivalent `Future`s from `Option`s" in {
+    Await.result(Some("string").toFuture, Duration.Zero) should equal ("string")
+
+    a [NoSuchElementException] should be thrownBy {Await.result(None.toFuture, Duration.Zero)}
+  }
+
+  it should "transform `Option`s" in {
+    Some("string").transform(s => Some(s.toUpperCase), Some("none")).get should be ("STRING")
+    Some("string").transform(s => Some(s.toUpperCase), None).get should be ("STRING")
+    Some("string").transform(_ => None, Some("none")) shouldBe empty
+    Some("string").transform(_ => None, None) shouldBe empty
+
+    None.transform((_: Nothing) => Some("some"), Some("none")).get should be ("none")
+    None.transform((_: Nothing) => Some("some"), None) shouldBe empty
+    None.transform((_: Nothing) => None, Some("none")).get should be ("none")
+    None.transform((_: Nothing) => None, None) shouldBe empty
+  }
+
+  it should "invert `Option`s" in {
+    Some("string").invert("none") shouldBe empty
+    None.invert("some").get should be ("some")
+
+    Some("string").invertWith(Some("none")) shouldBe empty
+    Some("string").invertWith(None) shouldBe empty
+    None.invertWith(Some("some")).get should be ("some")
+    None.invertWith(None) shouldBe empty
   }
 }
 

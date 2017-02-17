@@ -2,6 +2,9 @@ package com
 
 import com.nthportal.extrapredef.ExtraPredefCore
 
+import scala.concurrent.Future
+import scala.util.Try
+
 package object nthportal extends ExtraPredefCore {
   implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**
@@ -72,6 +75,29 @@ package object nthportal extends ExtraPredefCore {
     }
   }
 
+  implicit final class ExtraRichOrdered[A <: Ordered[A]](private val a: A) extends AnyVal {
+    /**
+      * Returns `true` if `this` and `that` are unequal by their
+      * [[java.lang.Comparable natural ordering]]; `false` otherwise.
+      * (That is, returns `true` if `this` is greater than or less than `that`.)
+      *
+      * @param that the thing to which to compare `this`
+      * @return `true` if `this` and `that` are unequal by their natural ordering
+      */
+    def <>(that: A): Boolean = (a compare that) != 0
+
+    /**
+      * Returns `true` if `this` and `that` are equal by their
+      * [[java.lang.Comparable natural ordering]]; `false` otherwise.
+      * (That is, returns `true` if `this` is neither greater than nor less
+      * than `that`.)
+      *
+      * @param that the thing to which to compare `this`
+      * @return `true` if `this` and `that` are equal by their natural ordering
+      */
+    def !<>(that: A): Boolean = (a compare that) == 0
+  }
+
   implicit final class ExtraRichOrdering[T](private val ord: Ordering[T]) extends AnyVal {
     /**
       * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
@@ -124,5 +150,55 @@ package object nthportal extends ExtraPredefCore {
       */
     @inline
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+  }
+
+  implicit final class ExtraRichOption[A](private val opt: Option[A]) extends AnyVal {
+    /**
+      * Returns a completed [[Future]] from this [[Option]].
+      *
+      * The Future returned:
+      *  - succeeds with the value of this Option if this Option is defined
+      *  - fails with a `NoSuchElementException` if this Option is empty
+      *
+      * @return a completed Future from this Option
+      */
+    def toFuture: Future[A] = Future.fromTry(Try(opt.get))
+
+    /**
+      * Returns an [[Option]] by applying `ifDefined` to the value of this
+      * Option if this Option is defined, or `ifEmpty` if this Option is empty.
+      *
+      * @param ifDefined a function to apply to the value of this Option
+      *                  if it is defined
+      * @param ifEmpty   an Option to return if this Option is empty
+      * @tparam B the type of the Option returned
+      * @return an Option by applying `ifDefined` to the value of this Option
+      *         if this Option is defined, or `ifEmpty` if this Option is empty
+      */
+    def transform[B](ifDefined: A => Option[B], ifEmpty: => Option[B]): Option[B] = {
+      if (opt.isDefined) ifDefined(opt.get) else ifEmpty
+    }
+
+    /**
+      * Returns an [[Option]] containing the specified value if this Option
+      * is empty, or an empty Option if this Option is defined.
+      *
+      * @param ifEmpty the value to use if this Option is empty
+      * @tparam B the type of the returned Option
+      * @return an Option containing the specified the specified value if this
+      *         Option is empty, or an empty Option if this Option is defined
+      */
+    def invert[B](ifEmpty: => B): Option[B] = invertWith(Some(ifEmpty))
+
+    /**
+      * Returns the specified [[Option]] if this Option is empty, or an empty
+      * Option if this Option is defined.
+      *
+      * @param ifEmpty the option to return if this Option is empty
+      * @tparam B the type of the returned Option
+      * @return the specified Option if this Option is empty, or an empty
+      *         Option if this Option is defined
+      */
+    def invertWith[B](ifEmpty: => Option[B]): Option[B] = if (opt.isEmpty) ifEmpty else None
   }
 }
