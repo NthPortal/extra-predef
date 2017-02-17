@@ -72,6 +72,16 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     test shouldNot be < OrderingChainTest(1, 2, 3)
   }
 
+  it should "compare natural ordering correctly" in {
+    (BasicOrdered(1) <> 2) should be (true)
+    (BasicOrdered(2) <> 1) should be (true)
+    (BasicOrdered(1) <> 1) should be (false)
+
+    (BasicOrdered(1) !<> 2) should be (false)
+    (BasicOrdered(2) !<> 1) should be (false)
+    (BasicOrdered(1) !<> 1) should be (true)
+  }
+
   it should "create equivalent `Future`s from `Option`s" in {
     Await.result(Some("string").toFuture, Duration.Zero) should equal ("string")
 

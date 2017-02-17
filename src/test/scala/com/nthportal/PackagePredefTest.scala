@@ -48,6 +48,16 @@ class PackagePredefTest extends FlatSpec with Matchers {
     test shouldNot be < ComparisonChainTest(1, 2, 3)
   }
 
+  it should "compare natural ordering correctly" in {
+    (BasicOrdered(1) <> 2) should be (true)
+    (BasicOrdered(2) <> 1) should be (true)
+    (BasicOrdered(1) <> 1) should be (false)
+
+    (BasicOrdered(1) !<> 2) should be (false)
+    (BasicOrdered(2) !<> 1) should be (false)
+    (BasicOrdered(1) !<> 1) should be (true)
+  }
+
   it should "chain orderings" in {
     val ordering = Ordering.by[OrderingChainTest, Int](_.a).thenBy(_.b).thenBy(_.c)
 

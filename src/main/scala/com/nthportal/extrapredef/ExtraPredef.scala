@@ -99,6 +99,29 @@ trait ExtraPredef extends ExtraPredefCore {
     }
   }
 
+  implicit final class ExtraRichOrdered[A <: Ordered[A]](private val a: A) {
+    /**
+      * Returns `true` if `this` and `that` are unequal by their
+      * [[java.lang.Comparable natural ordering]]; `false` otherwise.
+      * (That is, returns `true` if `this` is greater than or less than `that`.)
+      *
+      * @param that the thing to which to compare `this`
+      * @return `true` if `this` and `that` are unequal by their natural ordering
+      */
+    def <>(that: A): Boolean = (a compare that) != 0
+
+    /**
+      * Returns `true` if `this` and `that` are equal by their
+      * [[java.lang.Comparable natural ordering]]; `false` otherwise.
+      * (That is, returns `true` if `this` is neither greater than nor less
+      * than `that`.)
+      *
+      * @param that the thing to which to compare `this`
+      * @return `true` if `this` and `that` are equal by their natural ordering
+      */
+    def !<>(that: A): Boolean = (a compare that) == 0
+  }
+
   implicit final class ExtraRichOrdering[T](private val ord1: Ordering[T]) {
     /**
       * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
