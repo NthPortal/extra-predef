@@ -10,7 +10,7 @@ An extra Predef for Scala
 
 ### SBT
 ```
-"com.nthportal" %% "extra-predef" % "0.1.0"
+"com.nthportal" %% "extra-predef" % "0.2.0"
 ```
 
 ### Maven
@@ -18,6 +18,6 @@ An extra Predef for Scala
 <dependency>
   <groupId>com.nthportal</groupId>
   <artifactId>extra-predef_2.12</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
