@@ -26,6 +26,9 @@ object OrderingExtras {
     def !<>(rhs: T): Boolean = this.equiv(rhs)
   }
 
+  /**
+    * This object contains a superset of the implicits found in [[Ordering.Implicits]].
+    */
   object Implicits extends Ordering.ExtraImplicits {
     override implicit def infixOrderingOps[T](x: T)(implicit ord: Ordering[T]): Ordering[T]#Ops with ExtraOps[T] = {
       new ord.Ops(x) with ExtraOps[T]
