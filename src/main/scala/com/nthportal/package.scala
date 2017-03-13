@@ -28,19 +28,19 @@ package object nthportal extends ExtraPredefCore {
       * @return `this` if `this` is not `null`, or the default value otherwise
       * @see [[??]]
       */
-    def orIfNull(value: A): A = if (a != null) a else value
+    def orIfNull[B >: A](value: => B): B = if (a != null) a else value
 
     /**
       * Returns `this` if `this` is not `null`, or a default value otherwise.
       *
-      * This method is a `null`-coalescing operator, and is equivalent to [[orIfNull]].
+      * This method is a `null`-coalescing operator, and is an alias of [[orIfNull]].
       *
       * @param value a default value if `this` is `null`
       * @return `this` if `this` is not `null`, or the default value otherwise
       * @see [[orIfNull]]
       */
     @inline
-    def ??(value: A): A = orIfNull(value)
+    def ??[B >: A](value: => B): B = orIfNull(value)
   }
 
   implicit final class ExtraRichOrderedInt(private val prev: Int) extends AnyVal {

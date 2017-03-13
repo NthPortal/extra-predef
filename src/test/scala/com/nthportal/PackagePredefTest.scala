@@ -22,7 +22,7 @@ class PackagePredefTest extends FlatSpec with Matchers {
 
   it should "coalesce null references correctly" in {
     _null ?? "bar" should equal ("bar")
-    "foo" ?? "bar" should equal ("foo")
+    "foo" ?? 4 should equal ("foo")
     "foo" ?? null should equal ("foo")
   }
 
