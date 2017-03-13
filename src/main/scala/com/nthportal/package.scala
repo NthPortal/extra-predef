@@ -152,17 +152,27 @@ package object nthportal extends ExtraPredefCore {
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
   }
 
-  implicit final class ExtraRichOption[A](private val opt: Option[A]) extends AnyVal {
+  implicit final class ExtraRichOption[+A](private val opt: Option[A]) extends AnyVal {
+    /**
+      * Returns a [[Try]] from this [[Option]].
+      *
+      * The Try returned is a [[scala.util.Success Success]] with the value of this
+      * Option if this Option is defined, or a [[scala.util.Failure Failure]] with
+      * a `NoSuchElementException` if this Option is empty.
+      *
+      * @return a Try from this Option
+      */
+    def toTry: Try[A] = Try {opt.get}
+
     /**
       * Returns a completed [[Future]] from this [[Option]].
       *
-      * The Future returned:
-      *  - succeeds with the value of this Option if this Option is defined
-      *  - fails with a `NoSuchElementException` if this Option is empty
+      * The Future returned succeeds with the value of this Option if this Option
+      * is defined, or fails with a `NoSuchElementException` if this Option is empty.
       *
       * @return a completed Future from this Option
       */
-    def toFuture: Future[A] = Future.fromTry(Try(opt.get))
+    def toFuture: Future[A] = Future.fromTry(toTry)
 
     /**
       * Returns an [[Option]] by applying `ifDefined` to the value of this
@@ -200,5 +210,19 @@ package object nthportal extends ExtraPredefCore {
       *         Option if this Option is defined
       */
     def invertWith[B](ifEmpty: => Option[B]): Option[B] = if (opt.isEmpty) ifEmpty else None
+  }
+
+  implicit final class ExtraRichTry[+A](private val t: Try[A]) extends AnyVal {
+    /**
+      * Returns a completed [[Future]] from this [[Try]].
+      *
+      * The Future returned succeeds with the value of this Try if it is a
+      * [[scala.util.Success Success]], or fails with a `NoSuchElementException` if
+      * this Try is a [[scala.util.Failure Failure]].
+      *
+      * @return a Future from this Try
+      * @see [[Future.fromTry]]
+      */
+    def toFuture: Future[A] = Future.fromTry(t)
   }
 }
