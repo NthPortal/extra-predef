@@ -2,14 +2,13 @@ organization := "com.nthportal"
 name := "extra-predef"
 description := "An extra Predef for Scala."
 
-val rawVersion = "0.2.0"
+val rawVersion = "0.3.0"
 isSnapshot := false
 version := rawVersion + {if (isSnapshot.value) "-SNAPSHOT" else ""}
 
 scalaVersion := "2.12.1"
 
 crossScalaVersions := Seq(
-  "2.12.0",
   "2.12.1"
 )
 

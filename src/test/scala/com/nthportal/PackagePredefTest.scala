@@ -5,6 +5,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
+import scala.util.Try
 
 class PackagePredefTest extends FlatSpec with Matchers {
   import PackagePredefTest._
@@ -21,7 +22,7 @@ class PackagePredefTest extends FlatSpec with Matchers {
 
   it should "coalesce null references correctly" in {
     _null ?? "bar" should equal ("bar")
-    "foo" ?? "bar" should equal ("foo")
+    "foo" ?? 4 should equal ("foo")
     "foo" ?? null should equal ("foo")
   }
 
@@ -79,6 +80,16 @@ class PackagePredefTest extends FlatSpec with Matchers {
     test shouldNot be < OrderingChainTest(1, 2, 3)
   }
 
+  it should "create equivalent `Try`s from `Option`s" in {
+    val t1 = Some("string").toTry
+    t1.isSuccess should be (true)
+    t1.get should equal ("string")
+
+    val t2 = None.toTry
+    t2.isFailure should be (true)
+    a [NoSuchElementException] should be thrownBy {t2.get}
+  }
+
   it should "create equivalent `Future`s from `Option`s" in {
     Await.result(Some("string").toFuture, Duration.Zero) should equal ("string")
 
@@ -105,6 +116,13 @@ class PackagePredefTest extends FlatSpec with Matchers {
     Some("string").invertWith(None) shouldBe empty
     None.invertWith(Some("some")).get should be ("some")
     None.invertWith(None) shouldBe empty
+  }
+
+  it should "create equivalent `Future`s from `Try`s" in {
+    Await.result(Try("string").toFuture, Duration.Zero) should equal ("string")
+
+    val ex = new Exception("foo")
+    Await.result(Try(throw ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
   }
 }
 
