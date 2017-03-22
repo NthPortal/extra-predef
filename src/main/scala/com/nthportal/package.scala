@@ -226,7 +226,7 @@ package object nthportal extends ExtraPredefCore {
     def toFuture: Future[A] = Future.fromTry(t)
   }
 
-  implicit final class ExtraRichEither[A, B](private val either: Either[A, B]) extends AnyVal {
+  implicit final class ExtraRichEither[+A, +B](private val either: Either[A, B]) extends AnyVal {
     /**
       * Returns a completed [[Future]] from this [[Either]].
       *
