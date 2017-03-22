@@ -253,7 +253,7 @@ trait ExtraPredef extends ExtraPredefCore {
     def toFuture: Future[A] = Future.fromTry(t)
   }
 
-  implicit final class ExtraRichEither[A, B](private val either: Either[A, B]) {
+  implicit final class ExtraRichEither[+A, +B](private val either: Either[A, B]) {
     /**
       * Returns a completed [[Future]] from this [[Either]].
       *
