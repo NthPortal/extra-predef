@@ -127,6 +127,13 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     val ex = new Exception("foo")
     Await.result(Try(throw ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
   }
+
+  it should "create equivalent `Future`s from `Either`s" in {
+    Await.result(Right("string").toFuture, Duration.Zero) should equal ("string")
+
+    val ex = new Exception("foo")
+    Await.result(Left(ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
+  }
 }
 
 object ExtraPredefTest {
