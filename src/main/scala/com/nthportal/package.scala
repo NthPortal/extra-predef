@@ -225,4 +225,17 @@ package object nthportal extends ExtraPredefCore {
       */
     def toFuture: Future[A] = Future.fromTry(t)
   }
+
+  implicit final class ExtraRichEither[A, B](private val either: Either[A, B]) extends AnyVal {
+    /**
+      * Returns a completed [[Future]] from this [[Either]].
+      *
+      * The Future returned succeeds with the `Right` value if this Either
+      * is a [[scala.util.Right Right]], or fails with the `Left` value if
+      * this Either is a [[scala.util.Left Left]].
+      *
+      * @return a Future from this Either
+      */
+    def toFuture(implicit ev: A <:< Throwable): Future[B] = Future.fromTry(either.toTry)
+  }
 }
