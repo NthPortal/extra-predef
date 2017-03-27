@@ -2,7 +2,7 @@ organization := "com.nthportal"
 name := "extra-predef"
 description := "An extra Predef for Scala."
 
-val rawVersion = "0.4.0"
+val rawVersion = "1.0.0"
 isSnapshot := false
 version := rawVersion + {if (isSnapshot.value) "-SNAPSHOT" else ""}
 
