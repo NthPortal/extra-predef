@@ -98,7 +98,7 @@ package object nthportal extends ExtraPredefCore {
     def !<>(that: A): Boolean = (a compare that) == 0
   }
 
-  implicit final class ExtraRichOrdering[T](private val ord: Ordering[T]) extends AnyVal {
+  implicit final class ExtraRichOrdering[T](private val ord1: Ordering[T]) extends AnyVal {
     /**
       * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
       * to them if this Ordering returned `0` when comparing them.
@@ -120,7 +120,10 @@ package object nthportal extends ExtraPredefCore {
       * @return a new [[Ordering]] which compares elements by applying a function to them
       *         if this Ordering returned `0` when comparing them
       */
-    def thenOrderingBy[S: Ordering](f: T => S): Ordering[T] = (x, y) => ord.compare(x, y).thenCompare(f(x), f(y))
+    def thenOrderingBy[S](f: T => S)(implicit ord2: Ordering[S]): Ordering[T] = (x, y) => {
+      val res1 = ord1.compare(x, y)
+      if (res1 != 0) res1 else ord2.compare(f(x), f(y))
+    }
 
     /**
       * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
