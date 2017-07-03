@@ -14,6 +14,7 @@ import scala.util.Try
   * @see [[ExtraPredefCore]]
   */
 trait ExtraPredef extends ExtraPredefCore {
+
   implicit final class ExtraRichNullable[A](private val a: A) {
     /**
       * Asserts that `this` is not `null`.
@@ -190,7 +191,7 @@ trait ExtraPredef extends ExtraPredefCore {
       *
       * @return a Try from this Option
       */
-    def toTry: Try[A] = Try {opt.get}
+    def toTry: Try[A] = Try { opt.get }
 
     /**
       * Returns a completed [[Future]] from this [[Option]].
@@ -322,4 +323,5 @@ trait ExtraPredef extends ExtraPredefCore {
       }
     }
   }
+
 }

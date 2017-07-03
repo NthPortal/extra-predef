@@ -3,7 +3,10 @@ package com.nthportal.extrapredef.math
 import scala.language.implicitConversions
 
 object OrderingExtras {
-  trait ExtraOps[T] { self: Ordering[T]#Ops =>
+
+  trait ExtraOps[T] {
+    self: Ordering[T]#Ops =>
+
     /**
       * Returns `true` if `lhs` and `rhs` are unequal by their
       * [[java.lang.Comparable natural ordering]]; `false` otherwise.
@@ -34,4 +37,5 @@ object OrderingExtras {
       new ord.Ops(x) with ExtraOps[T]
     }
   }
+
 }

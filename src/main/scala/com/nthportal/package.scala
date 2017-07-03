@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.util.Try
 
 package object nthportal extends ExtraPredefCore {
+
   implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**
       * Asserts that `this` is not `null`.
@@ -166,7 +167,7 @@ package object nthportal extends ExtraPredefCore {
       *
       * @return a Try from this Option
       */
-    def toTry: Try[A] = Try {opt.get}
+    def toTry: Try[A] = Try { opt.get }
 
     /**
       * Returns a completed [[Future]] from this [[Option]].
@@ -298,4 +299,5 @@ package object nthportal extends ExtraPredefCore {
       }
     }
   }
+
 }
