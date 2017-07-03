@@ -2,6 +2,7 @@ package com
 
 import com.nthportal.extrapredef.ExtraPredefCore
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.Try
 
@@ -240,5 +241,61 @@ package object nthportal extends ExtraPredefCore {
       * @return a Future from this Either
       */
     def toFuture(implicit ev: A <:< Throwable): Future[B] = Future.fromTry(either.toTry)
+  }
+
+  implicit final class ExtraRichSortedMap[K, +V](private val map: collection.SortedMap[K, V]) extends AnyVal {
+    /**
+      * Returns `true` if this [[collection.SortedMap `SortedMap`]] contains
+      * the same mappings in the same order as another `SortedMap`; `false` otherwise.
+      *
+      * @param other the other `SortedMap`
+      * @return `true` if this `SortedMap` contains the same mappings in the same
+      *         order as `other`; `false` otherwise
+      */
+    def orderedEquals[V1 >: V](other: collection.SortedMap[K, V1]): Boolean = map sameElements other
+  }
+
+  implicit final class ExtraRichTraversableOnce[+A](private val col: TraversableOnce[A]) extends AnyVal {
+    /**
+      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
+      *
+      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
+      * keys will be overwritten, and if this collection is unordered, which key ends
+      * up in the map is undefined.
+      *
+      * @param ord the ordering for the `SortedMap`
+      * @tparam K the type of the keys for the map
+      * @tparam V the type of the values for the map
+      * @return a `SortedMap` from this collection
+      * @see [[scala.collection.GenTraversableOnce.toMap]]
+      */
+    def toSortedMap[K, V](implicit ev: A <:< (K, V), ord: Ordering[K]): immutable.SortedMap[K, V] = toSortedMap(ord)
+
+    /**
+      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
+      *
+      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
+      * keys will be overwritten, and if this collection is unordered, which key ends
+      * up in the map is undefined.
+      *
+      * This overload of the method allows one to specify an [[Ordering]]
+      * without also having to specify the [[<:< evidence]] that elements of this
+      * collection are tuples.
+      *
+      * @param ord the ordering for the `SortedMap`
+      * @tparam K the type of the keys for the map
+      * @tparam V the type of the values for the map
+      * @return a `SortedMap` from this collection
+      * @see [[scala.collection.GenTraversableOnce.toMap]]
+      */
+    def toSortedMap[K, V](ord: Ordering[K])(implicit ev: A <:< (K, V)): immutable.SortedMap[K, V] = {
+      col match {
+        case map: immutable.SortedMap[_, _] if map.ordering == ord => map.asInstanceOf[immutable.SortedMap[K, V]]
+        case _ =>
+          val b = immutable.SortedMap.newBuilder[K, V](ord)
+          for (x <- col) b += x
+          b.result()
+      }
+    }
   }
 }

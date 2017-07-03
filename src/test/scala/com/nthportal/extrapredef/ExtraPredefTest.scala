@@ -2,6 +2,7 @@ package com.nthportal.extrapredef
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.collection.immutable.SortedMap
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
@@ -133,6 +134,30 @@ class ExtraPredefTest extends FlatSpec with Matchers {
 
     val ex = new Exception("foo")
     Await.result(Left(ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
+  }
+
+  it should "test `SortedMap`s for ordered equality" in {
+    val sm = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
+
+    sm orderedEquals SortedMap(3 -> 3, 2 -> 2, 1 -> 1) shouldBe true
+    sm orderedEquals SortedMap(1 -> 1, 2 -> 2, 3 -> 3)(implicitly[Ordering[Int]].reverse) shouldBe false
+  }
+
+  it should "convert collections to `SortedMap`s" in {
+    val sm1 = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
+
+    sm1.toSortedMap should be theSameInstanceAs sm1
+    sm1.toSeq shouldEqual Seq(1 -> 1, 2 -> 2, 3 -> 3)
+    Seq(3 -> 3, 2 -> 2, 1 -> 1).toSortedMap orderedEquals sm1 shouldBe true
+
+    val reverseOrdering = implicitly[Ordering[Int]].reverse
+
+    val sm2 = sm1.toSortedMap(reverseOrdering)
+    sm2 orderedEquals sm1 shouldBe false
+
+    sm2.toSortedMap(reverseOrdering) should be theSameInstanceAs sm2
+    sm2.toSeq shouldEqual Seq(3 -> 3, 2 -> 2, 1 -> 1)
+    Seq(1 -> 1, 2 -> 2, 3 -> 3).toSortedMap(reverseOrdering) orderedEquals sm2 shouldBe true
   }
 }
 
