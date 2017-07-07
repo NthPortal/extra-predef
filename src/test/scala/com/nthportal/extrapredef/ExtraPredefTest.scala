@@ -161,7 +161,7 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     val sm = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
 
     sm orderedEquals SortedMap(3 -> 3, 2 -> 2, 1 -> 1) shouldBe true
-    sm orderedEquals SortedMap(1 -> 1, 2 -> 2, 3 -> 3)(implicitly[Ordering[Int]].reverse) shouldBe false
+    sm orderedEquals SortedMap(1 -> 1, 2 -> 2, 3 -> 3)(Ordering[Int].reverse) shouldBe false
   }
 
   it should "convert collections to `SortedMap`s" in {
@@ -171,7 +171,7 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     sm1.toSeq shouldEqual Seq(1 -> 1, 2 -> 2, 3 -> 3)
     Seq(3 -> 3, 2 -> 2, 1 -> 1).toSortedMap orderedEquals sm1 shouldBe true
 
-    val reverseOrdering = implicitly[Ordering[Int]].reverse
+    val reverseOrdering = Ordering[Int].reverse
 
     val sm2 = sm1.toSortedMap(reverseOrdering)
     sm2 orderedEquals sm1 shouldBe false
