@@ -3,7 +3,7 @@ name := "extra-predef"
 description := "An extra Predef for Scala."
 
 val rawVersion = "1.1.0"
-isSnapshot := true
+isSnapshot := false
 version := rawVersion + {if (isSnapshot.value) "-SNAPSHOT" else ""}
 
 scalaVersion := "2.12.2"
