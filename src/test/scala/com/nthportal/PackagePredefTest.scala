@@ -2,6 +2,7 @@ package com.nthportal
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.collection.immutable.SortedMap
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
@@ -60,24 +61,45 @@ class PackagePredefTest extends FlatSpec with Matchers {
   }
 
   it should "chain orderings" in {
-    val ordering = Ordering.by[OrderingChainTest, Int](_.a).thenBy(_.b).thenBy(_.c)
+    val ord1 = Ordering.by[OrderingChainTest1, Int](_.a).thenBy(_.b).thenBy(_.c)
 
-    case class OrderingChainTest(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest] {
-      override def compare(that: OrderingChainTest): Int = ordering.compare(this, that)
+    case class OrderingChainTest1(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest1] {
+      override def compare(that: OrderingChainTest1): Int = ord1.compare(this, that)
     }
 
-    val test = OrderingChainTest(1, 2, 3)
+    val test1 = OrderingChainTest1(1, 2, 3)
 
-    test should be > OrderingChainTest(1, 2, 2)
-    test should be > OrderingChainTest(1, 1, 4)
-    test should be > OrderingChainTest(0, 3, 4)
+    test1 should be > OrderingChainTest1(1, 2, 2)
+    test1 should be > OrderingChainTest1(1, 1, 4)
+    test1 should be > OrderingChainTest1(0, 3, 4)
 
-    test should be < OrderingChainTest(1, 2, 4)
-    test should be < OrderingChainTest(1, 3, 2)
-    test should be < OrderingChainTest(2, 1, 2)
+    test1 should be < OrderingChainTest1(1, 2, 4)
+    test1 should be < OrderingChainTest1(1, 3, 2)
+    test1 should be < OrderingChainTest1(2, 1, 2)
 
-    test shouldNot be > OrderingChainTest(1, 2, 3)
-    test shouldNot be < OrderingChainTest(1, 2, 3)
+    test1 shouldNot be > OrderingChainTest1(1, 2, 3)
+    test1 shouldNot be < OrderingChainTest1(1, 2, 3)
+
+    val ord2 = Ordering.by[OrderingChainTest2, Int](_.a)
+      .thenBy(Ordering.by[OrderingChainTest2, Int](_.b))
+      .thenBy(Ordering.by[OrderingChainTest2, BasicOrdered](_.c))
+
+    case class OrderingChainTest2(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest2] {
+      override def compare(that: OrderingChainTest2): Int = ord2.compare(this, that)
+    }
+
+    val test2 = OrderingChainTest2(1, 2, 3)
+
+    test2 should be > OrderingChainTest2(1, 2, 2)
+    test2 should be > OrderingChainTest2(1, 1, 4)
+    test2 should be > OrderingChainTest2(0, 3, 4)
+
+    test2 should be < OrderingChainTest2(1, 2, 4)
+    test2 should be < OrderingChainTest2(1, 3, 2)
+    test2 should be < OrderingChainTest2(2, 1, 2)
+
+    test2 shouldNot be > OrderingChainTest2(1, 2, 3)
+    test2 shouldNot be < OrderingChainTest2(1, 2, 3)
   }
 
   it should "create equivalent `Try`s from `Option`s" in {
@@ -130,6 +152,30 @@ class PackagePredefTest extends FlatSpec with Matchers {
 
     val ex = new Exception("foo")
     Await.result(Left(ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
+  }
+
+  it should "test `SortedMap`s for ordered equality" in {
+    val sm = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
+
+    sm orderedEquals SortedMap(3 -> 3, 2 -> 2, 1 -> 1) shouldBe true
+    sm orderedEquals SortedMap(1 -> 1, 2 -> 2, 3 -> 3)(Ordering[Int].reverse) shouldBe false
+  }
+
+  it should "convert collections to `SortedMap`s" in {
+    val sm1 = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
+
+    sm1.toSortedMap should be theSameInstanceAs sm1
+    sm1.toSeq shouldEqual Seq(1 -> 1, 2 -> 2, 3 -> 3)
+    Seq(3 -> 3, 2 -> 2, 1 -> 1).toSortedMap orderedEquals sm1 shouldBe true
+
+    val reverseOrdering = Ordering[Int].reverse
+
+    val sm2 = sm1.toSortedMap(reverseOrdering)
+    sm2 orderedEquals sm1 shouldBe false
+
+    sm2.toSortedMap(reverseOrdering) should be theSameInstanceAs sm2
+    sm2.toSeq shouldEqual Seq(3 -> 3, 2 -> 2, 1 -> 1)
+    Seq(1 -> 1, 2 -> 2, 3 -> 3).toSortedMap(reverseOrdering) orderedEquals sm2 shouldBe true
   }
 }
 
