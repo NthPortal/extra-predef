@@ -155,6 +155,64 @@ package object nthportal extends ExtraPredefCore {
       */
     @inline
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+
+    /**
+      * Returns a new [[Ordering]] which compares elements using the specified Ordering
+      * if this Ordering returned `0` when comparing them.
+      *
+      * This method is intended to be used to build more complex Orderings from
+      * other Orderings, as in the following example:
+      *
+      * {{{
+      * case class PlayingCard(rank: Rank, suit: Suit)
+      *
+      * object PlayingCard {
+      *   val rankOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.rank)
+      *   val suitOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.suit)
+      *   val fullOrdering: Ordering[PlayingCard] = rankOnlyOrdering.thenOrderingBy(suitOnlyOrdering)
+      * }
+      * }}}
+      *
+      * @param ord2 another Ordering with which to compare elements
+      * @return a new Ordering which compares elements using the specified Ordering
+      *         if this Ordering returned `0` when comparing them
+      */
+    def thenOrderingBy(ord2: Ordering[T]): Ordering[T] = (x, y) => {
+      val res1 = ord1.compare(x, y)
+      if (res1 != 0) res1 else ord2.compare(x, y)
+    }
+
+    /**
+      * Returns a new [[Ordering]] which compares elements using the specified Ordering
+      * if this Ordering returned `0` when comparing them.
+      *
+      * This method is an alias of [[thenOrderingBy]], intended to be used
+      * when chaining several calls in order to reduce verbosity, as in the
+      * following example:
+      *
+      * {{{
+      * case class IntTuple(a: Int, b: Int, c: Int, d: Int)
+      *
+      * object IntTuple {
+      *   val orderingA: Ordering[IntTuple] = Ordering.by(_.a)
+      *   val orderingB: Ordering[IntTuple] = Ordering.by(_.b)
+      *   val orderingC: Ordering[IntTuple] = Ordering.by(_.c)
+      *   val orderingD: Ordering[IntTuple] = Ordering.by(_.d)
+      *
+      *   val fullOrdering: Ordering[IntTuple] =
+      *     orderingA
+      *       .thenOrderingBy(orderingB)
+      *       .thenBy(orderingC)
+      *       .thenBy(orderingD)
+      * }
+      * }}}
+      *
+      * @param ord2 another Ordering with which to compare elements
+      * @return a new Ordering which compares elements using the specified Ordering
+      *         if this Ordering returned `0` when comparing them
+      */
+    @inline
+    def thenBy(ord2: Ordering[T]): Ordering[T] = thenOrderingBy(ord2)
   }
 
   implicit final class ExtraRichOption[+A](private val opt: Option[A]) extends AnyVal {
