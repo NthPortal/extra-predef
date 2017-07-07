@@ -2,10 +2,12 @@ package com
 
 import com.nthportal.extrapredef.ExtraPredefCore
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.Try
 
 package object nthportal extends ExtraPredefCore {
+
   implicit final class ExtraRichNullable[A](private val a: A) extends AnyVal {
     /**
       * Asserts that `this` is not `null`.
@@ -153,6 +155,64 @@ package object nthportal extends ExtraPredefCore {
       */
     @inline
     def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
+
+    /**
+      * Returns a new [[Ordering]] which compares elements using the specified Ordering
+      * if this Ordering returned `0` when comparing them.
+      *
+      * This method is intended to be used to build more complex Orderings from
+      * other Orderings, as in the following example:
+      *
+      * {{{
+      * case class PlayingCard(rank: Rank, suit: Suit)
+      *
+      * object PlayingCard {
+      *   val rankOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.rank)
+      *   val suitOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.suit)
+      *   val fullOrdering: Ordering[PlayingCard] = rankOnlyOrdering.thenOrderingBy(suitOnlyOrdering)
+      * }
+      * }}}
+      *
+      * @param ord2 another Ordering with which to compare elements
+      * @return a new Ordering which compares elements using the specified Ordering
+      *         if this Ordering returned `0` when comparing them
+      */
+    def thenOrderingBy(ord2: Ordering[T]): Ordering[T] = (x, y) => {
+      val res1 = ord1.compare(x, y)
+      if (res1 != 0) res1 else ord2.compare(x, y)
+    }
+
+    /**
+      * Returns a new [[Ordering]] which compares elements using the specified Ordering
+      * if this Ordering returned `0` when comparing them.
+      *
+      * This method is an alias of [[thenOrderingBy]], intended to be used
+      * when chaining several calls in order to reduce verbosity, as in the
+      * following example:
+      *
+      * {{{
+      * case class IntTuple(a: Int, b: Int, c: Int, d: Int)
+      *
+      * object IntTuple {
+      *   val orderingA: Ordering[IntTuple] = Ordering.by(_.a)
+      *   val orderingB: Ordering[IntTuple] = Ordering.by(_.b)
+      *   val orderingC: Ordering[IntTuple] = Ordering.by(_.c)
+      *   val orderingD: Ordering[IntTuple] = Ordering.by(_.d)
+      *
+      *   val fullOrdering: Ordering[IntTuple] =
+      *     orderingA
+      *       .thenOrderingBy(orderingB)
+      *       .thenBy(orderingC)
+      *       .thenBy(orderingD)
+      * }
+      * }}}
+      *
+      * @param ord2 another Ordering with which to compare elements
+      * @return a new Ordering which compares elements using the specified Ordering
+      *         if this Ordering returned `0` when comparing them
+      */
+    @inline
+    def thenBy(ord2: Ordering[T]): Ordering[T] = thenOrderingBy(ord2)
   }
 
   implicit final class ExtraRichOption[+A](private val opt: Option[A]) extends AnyVal {
@@ -165,7 +225,7 @@ package object nthportal extends ExtraPredefCore {
       *
       * @return a Try from this Option
       */
-    def toTry: Try[A] = Try {opt.get}
+    def toTry: Try[A] = Try { opt.get }
 
     /**
       * Returns a completed [[Future]] from this [[Option]].
@@ -241,4 +301,61 @@ package object nthportal extends ExtraPredefCore {
       */
     def toFuture(implicit ev: A <:< Throwable): Future[B] = Future.fromTry(either.toTry)
   }
+
+  implicit final class ExtraRichSortedMap[K, +V](private val map: collection.SortedMap[K, V]) extends AnyVal {
+    /**
+      * Returns `true` if this [[collection.SortedMap `SortedMap`]] contains
+      * the same mappings in the same order as another `SortedMap`; `false` otherwise.
+      *
+      * @param other the other `SortedMap`
+      * @return `true` if this `SortedMap` contains the same mappings in the same
+      *         order as `other`; `false` otherwise
+      */
+    def orderedEquals[V1 >: V](other: collection.SortedMap[K, V1]): Boolean = map sameElements other
+  }
+
+  implicit final class ExtraRichTraversableOnce[+A](private val col: TraversableOnce[A]) extends AnyVal {
+    /**
+      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
+      *
+      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
+      * keys will be overwritten, and if this collection is unordered, which key ends
+      * up in the map is undefined.
+      *
+      * @param ord the ordering for the `SortedMap`
+      * @tparam K the type of the keys for the map
+      * @tparam V the type of the values for the map
+      * @return a `SortedMap` from this collection
+      * @see [[scala.collection.GenTraversableOnce.toMap]]
+      */
+    def toSortedMap[K, V](implicit ev: A <:< (K, V), ord: Ordering[K]): immutable.SortedMap[K, V] = toSortedMap(ord)
+
+    /**
+      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
+      *
+      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
+      * keys will be overwritten, and if this collection is unordered, which key ends
+      * up in the map is undefined.
+      *
+      * This overload of the method allows one to specify an [[Ordering]]
+      * without also having to specify the [[<:< evidence]] that elements of this
+      * collection are tuples.
+      *
+      * @param ord the ordering for the `SortedMap`
+      * @tparam K the type of the keys for the map
+      * @tparam V the type of the values for the map
+      * @return a `SortedMap` from this collection
+      * @see [[scala.collection.GenTraversableOnce.toMap]]
+      */
+    def toSortedMap[K, V](ord: Ordering[K])(implicit ev: A <:< (K, V)): immutable.SortedMap[K, V] = {
+      col match {
+        case map: immutable.SortedMap[_, _] if map.ordering == ord => map.asInstanceOf[immutable.SortedMap[K, V]]
+        case _ =>
+          val b = immutable.SortedMap.newBuilder[K, V](ord)
+          for (x <- col) b += x
+          b.result()
+      }
+    }
+  }
+
 }
