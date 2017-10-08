@@ -16,4 +16,8 @@ class ExtraPredefCoreTest extends FlatSpec with Matchers {
     an [IllegalStateException] should be thrownBy {requireState(requirement = false, "message")}
     noException should be thrownBy {requireState(requirement = true, "message")}
   }
+
+  it should "handle impossible conditions correctly" in {
+    an [AssertionError] should be thrownBy { !!! }
+  }
 }

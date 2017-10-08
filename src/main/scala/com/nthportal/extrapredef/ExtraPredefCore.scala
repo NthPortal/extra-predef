@@ -35,4 +35,14 @@ trait ExtraPredefCore {
   def requireState(requirement: Boolean, message: => Any): Unit = {
     if (!requirement) throw new IllegalStateException("state requirement failed: " + message)
   }
+
+  /** Indicates that a condition or code path is impossible. */
+  def impossible: Nothing = throw new AssertionError("purportedly impossible")
+
+  /** Indicates that a condition or code path is impossible.
+    *
+    * Alias for [[impossible]].
+    */
+  @inline
+  def !!! : Nothing = impossible
 }
