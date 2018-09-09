@@ -1,21 +1,83 @@
 package com.nthportal.extrapredef
 
-import scala.collection.immutable
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scala.util.Try
 
 /**
   * An extra `Predef` which has more methods and implicit classes
   * than [[scala.Predef]].
-  *
-  * For an extra predef without any implicit classes, use
-  * [[ExtraPredefCore]] instead.
-  *
-  * @see [[ExtraPredefCore]]
   */
-trait ExtraPredef extends ExtraPredefCore {
+trait ExtraPredef {
+  import ExtraPredef._
 
-  implicit final class ExtraRichNullable[A](private val a: A) {
+  /**
+    * Tests an expression, throwing an [[IllegalStateException]] if false.
+    * This method is similar to
+    * [[Predef.require(requirement:Boolean):Unit* `Predef.require`]],
+    * but tests a state instead of a method argument.
+    *
+    * @param requirement the expression to test
+    * @throws IllegalStateException if the expression is false
+    */
+  @inline
+  @throws[IllegalStateException]
+  def requireState(requirement: Boolean): Unit = {
+    if (!requirement) throw new IllegalStateException("state requirement failed")
+  }
+
+  /**
+    * Tests an expression, throwing an [[IllegalStateException]] if false.
+    * This method is similar to
+    * [[Predef.require(requirement:Boolean,message:=>Any):Unit* `Predef.require`]],
+    * but tests a state instead of a method argument.
+    *
+    * @param requirement the expression to test
+    * @param message     a String to include in the failure message
+    * @throws IllegalStateException if the expression is false
+    */
+  @inline
+  @throws[IllegalStateException]
+  def requireState(requirement: Boolean, message: => Any): Unit = {
+    if (!requirement) throw new IllegalStateException("state requirement failed: " + message)
+  }
+
+  /** Indicates that a condition or code path is impossible. */
+  def impossible: Nothing = throw new AssertionError("purportedly impossible")
+
+  /** Indicates that a condition or code path is impossible.
+    *
+    * Alias for [[impossible]].
+    */
+  @inline
+  def !!! : Nothing = impossible
+
+  /* implicit conversions to value classes. */
+
+  implicit def asExtraRichNullable[A](self: A): ExtraRichNullable[A] =
+    new ExtraRichNullable(self)
+
+  implicit def asExtraRichOrderedInt(prev: Int): ExtraRichOrderedInt =
+    new ExtraRichOrderedInt(prev)
+
+  implicit def asExtraRichOrdered[A <: Ordered[A]](self: A): ExtraRichOrdered[A] =
+    new ExtraRichOrdered(self)
+
+  implicit def asExtraRichOption[A](self: Option[A]): ExtraRichOption[A] =
+    new ExtraRichOption(self)
+
+  implicit def asExtraRichTry[A](self: Try[A]): ExtraRichTry[A] =
+    new ExtraRichTry(self)
+
+  implicit def asExtraRichEither[L, R](self: Either[L, R]): ExtraRichEither[L, R] =
+    new ExtraRichEither(self)
+
+  implicit def asExtraRichSortedMap[K, V](self: collection.SortedMap[K, V]): ExtraRichSortedMap[K, V] =
+    new ExtraRichSortedMap(self)
+}
+
+object ExtraPredef extends ExtraPredef {
+  final class ExtraRichNullable[A](private val self: A) extends AnyVal {
     /**
       * Asserts that `this` is not `null`.
       *
@@ -24,8 +86,8 @@ trait ExtraPredef extends ExtraPredefCore {
       */
     @throws[NullPointerException]
     def nonNull: A = {
-      if (a == null) throw new NullPointerException("ExtraRichNullable.nonNull")
-      a
+      if (self == null) throw new NullPointerException("ExtraRichNullable.nonNull")
+      self
     }
 
     /**
@@ -37,7 +99,7 @@ trait ExtraPredef extends ExtraPredefCore {
       * @return `this` if `this` is not `null`, or the default value otherwise
       * @see [[??]]
       */
-    def orIfNull[B >: A](value: => B): B = if (a != null) a else value
+    def orIfNull[B >: A](value: => B): B = if (self != null) self else value
 
     /**
       * Returns `this` if `this` is not `null`, or a default value otherwise.
@@ -52,7 +114,7 @@ trait ExtraPredef extends ExtraPredefCore {
     def ??[B >: A](value: => B): B = orIfNull(value)
   }
 
-  implicit final class ExtraRichOrderedInt(private val prev: Int) {
+  final class ExtraRichOrderedInt(private val prev: Int) extends AnyVal {
     /**
       * Returns the result of the immediately previous comparison if it was not `0`;
       * otherwise the result of comparing two other things (`a1` and `a2`).
@@ -72,23 +134,6 @@ trait ExtraPredef extends ExtraPredefCore {
       * While this method can called on arbitrary [[Int]]s, to be meaningful,
       * it should only be called on the result of a previous comparison.
       *
-      * Because the implicit class containing this method does not extend [[AnyVal]],
-      * invoking this method results in object creation. Consequently, it is almost
-      * certainly more efficient to compare tupled elements instead, as in the following
-      * modification of the above example:
-      *
-      * {{{
-      * case class PlayingCard(rank: Rank, suit: Suit) extends Ordered[PlayingCard] {
-      *   override def compare(other: PlayingCard): Int = {
-      *     (this.rank, this.suit) compare (that.rank, that.suit)
-      *   }
-      * }
-      * }}}
-      *
-      * If one wants to use this method efficiently, it is recommended to copy the code
-      * from [[com.nthportal.ExtraRichOrderedInt the `com.nthportal` package object]]
-      * (which extends [[AnyVal]]) and paste it where needed.
-      *
       * @param a1  the first thing to compare
       * @param a2  the second thing to compare
       * @param ord an [[Ordering]] for `a1` and `a2`
@@ -101,7 +146,7 @@ trait ExtraPredef extends ExtraPredefCore {
     }
   }
 
-  implicit final class ExtraRichOrdered[A <: Ordered[A]](private val a: A) {
+  final class ExtraRichOrdered[A <: Ordered[A]](private val self: A) extends AnyVal {
     /**
       * Returns `true` if `this` and `that` are unequal by their
       * [[java.lang.Comparable natural ordering]]; `false` otherwise.
@@ -110,7 +155,7 @@ trait ExtraPredef extends ExtraPredefCore {
       * @param that the thing to which to compare `this`
       * @return `true` if `this` and `that` are unequal by their natural ordering
       */
-    def <>(that: A): Boolean = (a compare that) != 0
+    def <>(that: A): Boolean = (self compare that) != 0
 
     /**
       * Returns `true` if `this` and `that` are equal by their
@@ -121,125 +166,10 @@ trait ExtraPredef extends ExtraPredefCore {
       * @param that the thing to which to compare `this`
       * @return `true` if `this` and `that` are equal by their natural ordering
       */
-    def !<>(that: A): Boolean = (a compare that) == 0
+    def !<>(that: A): Boolean = (self compare that) == 0
   }
 
-  implicit final class ExtraRichOrdering[T](private val ord1: Ordering[T]) {
-    /**
-      * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
-      * to them if this Ordering returned `0` when comparing them.
-      *
-      * This method is intended to be used to build more complex Orderings from
-      * other Orderings, as in the following example:
-      *
-      * {{{
-      * case class PlayingCard(rank: Rank, suit: Suit)
-      *
-      * object PlayingCard {
-      *   val rankOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.rank)
-      *   val fullOrdering: Ordering[PlayingCard] = rankOnlyOrdering.thenOrderingBy(_.suit)
-      * }
-      * }}}
-      *
-      * @param f a function mapping elements to some value to be compared
-      * @tparam S the return type of `f`
-      * @return a new [[Ordering]] which compares elements by applying a function to them
-      *         if this Ordering returned `0` when comparing them
-      */
-    def thenOrderingBy[S](f: T => S)(implicit ord2: Ordering[S]): Ordering[T] = (x, y) => {
-      val res1 = ord1.compare(x, y)
-      if (res1 != 0) res1 else ord2.compare(f(x), f(y))
-    }
-
-    /**
-      * Returns a new [[Ordering]] which compares elements by applying a function (`f`)
-      * to them if this Ordering returned `0` when comparing them.
-      *
-      * This method is an alias of [[thenOrderingBy]], intended to be used
-      * when chaining several calls in order to reduce verbosity, as in the
-      * following example:
-      *
-      * {{{
-      * case class IntTuple(a: Int, b: Int, c: Int, d: Int)
-      *
-      * object IntTuple {
-      *   val ordering: Ordering[IntTuple] =
-      *     Ordering.by[IntTuple, Int](_.a)
-      *       .thenBy(_.b)
-      *       .thenBy(_.c)
-      *       .thenBy(_.d)
-      * }
-      * }}}
-      *
-      * @param f a function mapping elements to some value to be compared
-      * @tparam S the return type of `f`
-      * @return a new [[Ordering]] which compares elements by applying a function to them
-      *         if this Ordering returned `0` when comparing them
-      * @see [[thenOrderingBy]]
-      */
-    @inline
-    def thenBy[S: Ordering](f: T => S): Ordering[T] = thenOrderingBy(f)
-
-    /**
-      * Returns a new [[Ordering]] which compares elements using the specified Ordering
-      * if this Ordering returned `0` when comparing them.
-      *
-      * This method is intended to be used to build more complex Orderings from
-      * other Orderings, as in the following example:
-      *
-      * {{{
-      * case class PlayingCard(rank: Rank, suit: Suit)
-      *
-      * object PlayingCard {
-      *   val rankOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.rank)
-      *   val suitOnlyOrdering: Ordering[PlayingCard] = Ordering.by(_.suit)
-      *   val fullOrdering: Ordering[PlayingCard] = rankOnlyOrdering.thenOrderingBy(suitOnlyOrdering)
-      * }
-      * }}}
-      *
-      * @param ord2 another Ordering with which to compare elements
-      * @return a new Ordering which compares elements using the specified Ordering
-      *         if this Ordering returned `0` when comparing them
-      */
-    def thenOrderingBy(ord2: Ordering[T]): Ordering[T] = (x, y) => {
-      val res1 = ord1.compare(x, y)
-      if (res1 != 0) res1 else ord2.compare(x, y)
-    }
-
-    /**
-      * Returns a new [[Ordering]] which compares elements using the specified Ordering
-      * if this Ordering returned `0` when comparing them.
-      *
-      * This method is an alias of [[thenOrderingBy]], intended to be used
-      * when chaining several calls in order to reduce verbosity, as in the
-      * following example:
-      *
-      * {{{
-      * case class IntTuple(a: Int, b: Int, c: Int, d: Int)
-      *
-      * object IntTuple {
-      *   val orderingA: Ordering[IntTuple] = Ordering.by(_.a)
-      *   val orderingB: Ordering[IntTuple] = Ordering.by(_.b)
-      *   val orderingC: Ordering[IntTuple] = Ordering.by(_.c)
-      *   val orderingD: Ordering[IntTuple] = Ordering.by(_.d)
-      *
-      *   val fullOrdering: Ordering[IntTuple] =
-      *     orderingA
-      *       .thenOrderingBy(orderingB)
-      *       .thenBy(orderingC)
-      *       .thenBy(orderingD)
-      * }
-      * }}}
-      *
-      * @param ord2 another Ordering with which to compare elements
-      * @return a new Ordering which compares elements using the specified Ordering
-      *         if this Ordering returned `0` when comparing them
-      */
-    @inline
-    def thenBy(ord2: Ordering[T]): Ordering[T] = thenOrderingBy(ord2)
-  }
-
-  implicit final class ExtraRichOption[+A](private val opt: Option[A]) {
+  final class ExtraRichOption[+A](private val self: Option[A]) extends AnyVal {
     /**
       * Returns a [[Try]] from this [[Option]].
       *
@@ -249,7 +179,7 @@ trait ExtraPredef extends ExtraPredefCore {
       *
       * @return a Try from this Option
       */
-    def toTry: Try[A] = Try { opt.get }
+    def toTry: Try[A] = Try { self.get }
 
     /**
       * Returns a completed [[Future]] from this [[Option]].
@@ -273,7 +203,7 @@ trait ExtraPredef extends ExtraPredefCore {
       *         if this Option is defined, or `ifEmpty` if this Option is empty
       */
     def transform[B](ifDefined: A => Option[B], ifEmpty: => Option[B]): Option[B] = {
-      if (opt.isDefined) ifDefined(opt.get) else ifEmpty
+      if (self.isDefined) ifDefined(self.get) else ifEmpty
     }
 
     /**
@@ -296,10 +226,10 @@ trait ExtraPredef extends ExtraPredefCore {
       * @return the specified Option if this Option is empty, or an empty
       *         Option if this Option is defined
       */
-    def invertWith[B](ifEmpty: => Option[B]): Option[B] = if (opt.isEmpty) ifEmpty else None
+    def invertWith[B](ifEmpty: => Option[B]): Option[B] = if (self.isEmpty) ifEmpty else None
   }
 
-  implicit final class ExtraRichTry[+A](private val t: Try[A]) {
+  final class ExtraRichTry[+A](private val self: Try[A]) extends AnyVal {
     /**
       * Returns a completed [[Future]] from this [[Try]].
       *
@@ -310,10 +240,10 @@ trait ExtraPredef extends ExtraPredefCore {
       * @return a Future from this Try
       * @see [[Future.fromTry]]
       */
-    def toFuture: Future[A] = Future.fromTry(t)
+    def toFuture: Future[A] = Future.fromTry(self)
   }
 
-  implicit final class ExtraRichEither[+A, +B](private val either: Either[A, B]) {
+  final class ExtraRichEither[+L, +R](private val either: Either[L, R]) extends AnyVal {
     /**
       * Returns a completed [[Future]] from this [[Either]].
       *
@@ -323,10 +253,10 @@ trait ExtraPredef extends ExtraPredefCore {
       *
       * @return a Future from this Either
       */
-    def toFuture(implicit ev: A <:< Throwable): Future[B] = Future.fromTry(either.toTry)
+    def toFuture(implicit ev: L <:< Throwable): Future[R] = Future.fromTry(either.toTry)
   }
 
-  implicit final class ExtraRichSortedMap[K, +V](private val map: collection.SortedMap[K, V]) {
+  final class ExtraRichSortedMap[K, +V](private val map: collection.SortedMap[K, V]) extends AnyVal {
     /**
       * Returns `true` if this [[collection.SortedMap `SortedMap`]] contains
       * the same mappings in the same order as another `SortedMap`; `false` otherwise.
@@ -337,49 +267,4 @@ trait ExtraPredef extends ExtraPredefCore {
       */
     def orderedEquals[V1 >: V](other: collection.SortedMap[K, V1]): Boolean = map sameElements other
   }
-
-  implicit final class ExtraRichTraversableOnce[+A](private val col: TraversableOnce[A]) {
-    /**
-      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
-      *
-      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
-      * keys will be overwritten, and if this collection is unordered, which key ends
-      * up in the map is undefined.
-      *
-      * @param ord the ordering for the `SortedMap`
-      * @tparam K the type of the keys for the map
-      * @tparam V the type of the values for the map
-      * @return a `SortedMap` from this collection
-      * @see [[scala.collection.GenTraversableOnce.toMap]]
-      */
-    def toSortedMap[K, V](implicit ev: A <:< (K, V), ord: Ordering[K]): immutable.SortedMap[K, V] = toSortedMap(ord)
-
-    /**
-      * Converts this collection to a [[immutable.SortedMap `SortedMap`]].
-      *
-      * Similar to [[scala.collection.GenTraversableOnce.toMap `toMap`]], duplicate
-      * keys will be overwritten, and if this collection is unordered, which key ends
-      * up in the map is undefined.
-      *
-      * This overload of the method allows one to specify an [[Ordering]]
-      * without also having to specify the [[<:< evidence]] that elements of this
-      * collection are tuples.
-      *
-      * @param ord the ordering for the `SortedMap`
-      * @tparam K the type of the keys for the map
-      * @tparam V the type of the values for the map
-      * @return a `SortedMap` from this collection
-      * @see [[scala.collection.GenTraversableOnce.toMap]]
-      */
-    def toSortedMap[K, V](ord: Ordering[K])(implicit ev: A <:< (K, V)): immutable.SortedMap[K, V] = {
-      col match {
-        case map: immutable.SortedMap[_, _] if map.ordering == ord => map.asInstanceOf[immutable.SortedMap[K, V]]
-        case _ =>
-          val b = immutable.SortedMap.newBuilder[K, V](ord)
-          for (x <- col) b += x
-          b.result()
-      }
-    }
-  }
-
 }

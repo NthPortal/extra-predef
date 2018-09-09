@@ -1,33 +1,43 @@
 package com.nthportal.extrapredef
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FlatSpec, Matchers, OptionValues}
 
 import scala.collection.immutable.SortedMap
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 import scala.util.Try
 
-class ExtraPredefTest extends FlatSpec with Matchers {
-  private val predef = new ExtraPredef {}
-
+class ExtraPredefTest extends FlatSpec with Matchers with OptionValues {
+  import ExtraPredef._
   import ExtraPredefTest._
-  import predef._
 
   private val _null: Any = null
 
   behavior of "ExtraPredef"
 
-  it should "check for null correctly" in {
-    a [NullPointerException] should be thrownBy {_null.nonNull}
+  it should "require state correctly" in {
+    an [IllegalStateException] should be thrownBy requireState(false)
+    noException should be thrownBy requireState(true)
 
-    noException should be thrownBy {"a string".nonNull}
+    an [IllegalStateException] should be thrownBy requireState(requirement = false, "message")
+    noException should be thrownBy requireState(requirement = true, "message")
+  }
+
+  it should "handle impossible conditions correctly" in {
+    an [AssertionError] should be thrownBy !!!
+  }
+
+  it should "check for null correctly" in {
+    a [NullPointerException] should be thrownBy _null.nonNull
+
+    noException should be thrownBy "a string".nonNull
   }
 
   it should "coalesce null references correctly" in {
-    _null ?? "bar" should equal ("bar")
-    "foo" ?? 4 should equal ("foo")
-    "foo" ?? null should equal ("foo")
+    _null ?? "bar" shouldEqual "bar"
+    "foo" ?? 4 shouldEqual "foo"
+    "foo" ?? null shouldEqual "foo"
   }
 
   it should "chain comparisons" in {
@@ -54,107 +64,65 @@ class ExtraPredefTest extends FlatSpec with Matchers {
   }
 
   it should "compare natural ordering correctly" in {
-    (BasicOrdered(1) <> 2) should be (true)
-    (BasicOrdered(2) <> 1) should be (true)
-    (BasicOrdered(1) <> 1) should be (false)
+    (BasicOrdered(1) <> 2) shouldBe true
+    (BasicOrdered(2) <> 1) shouldBe true
+    (BasicOrdered(1) <> 1) shouldBe false
 
-    (BasicOrdered(1) !<> 2) should be (false)
-    (BasicOrdered(2) !<> 1) should be (false)
-    (BasicOrdered(1) !<> 1) should be (true)
-  }
-
-  it should "chain orderings" in {
-    val ord1 = Ordering.by[OrderingChainTest1, Int](_.a).thenBy(_.b).thenBy(_.c)
-
-    case class OrderingChainTest1(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest1] {
-      override def compare(that: OrderingChainTest1): Int = ord1.compare(this, that)
-    }
-
-    val test1 = OrderingChainTest1(1, 2, 3)
-
-    test1 should be > OrderingChainTest1(1, 2, 2)
-    test1 should be > OrderingChainTest1(1, 1, 4)
-    test1 should be > OrderingChainTest1(0, 3, 4)
-
-    test1 should be < OrderingChainTest1(1, 2, 4)
-    test1 should be < OrderingChainTest1(1, 3, 2)
-    test1 should be < OrderingChainTest1(2, 1, 2)
-
-    test1 shouldNot be > OrderingChainTest1(1, 2, 3)
-    test1 shouldNot be < OrderingChainTest1(1, 2, 3)
-
-    val ord2 = Ordering.by[OrderingChainTest2, Int](_.a)
-      .thenBy(Ordering.by[OrderingChainTest2, Int](_.b))
-      .thenBy(Ordering.by[OrderingChainTest2, BasicOrdered](_.c))
-
-    case class OrderingChainTest2(a: Int, b: Int, c: BasicOrdered) extends Ordered[OrderingChainTest2] {
-      override def compare(that: OrderingChainTest2): Int = ord2.compare(this, that)
-    }
-
-    val test2 = OrderingChainTest2(1, 2, 3)
-
-    test2 should be > OrderingChainTest2(1, 2, 2)
-    test2 should be > OrderingChainTest2(1, 1, 4)
-    test2 should be > OrderingChainTest2(0, 3, 4)
-
-    test2 should be < OrderingChainTest2(1, 2, 4)
-    test2 should be < OrderingChainTest2(1, 3, 2)
-    test2 should be < OrderingChainTest2(2, 1, 2)
-
-    test2 shouldNot be > OrderingChainTest2(1, 2, 3)
-    test2 shouldNot be < OrderingChainTest2(1, 2, 3)
+    (BasicOrdered(1) !<> 2) shouldBe false
+    (BasicOrdered(2) !<> 1) shouldBe false
+    (BasicOrdered(1) !<> 1) shouldBe true
   }
 
   it should "create equivalent `Try`s from `Option`s" in {
     val t1 = Some("string").toTry
-    t1.isSuccess should be (true)
-    t1.get should equal ("string")
+    t1.isSuccess shouldBe true
+    t1.get shouldEqual "string"
 
     val t2 = None.toTry
-    t2.isFailure should be (true)
-    a [NoSuchElementException] should be thrownBy {t2.get}
+    t2.isFailure shouldBe true
+    a [NoSuchElementException] should be thrownBy t2.get
   }
 
   it should "create equivalent `Future`s from `Option`s" in {
-    Await.result(Some("string").toFuture, Duration.Zero) should equal ("string")
+    Some("string").toFuture.getNow shouldEqual "string"
 
-    a [NoSuchElementException] should be thrownBy {Await.result(None.toFuture, Duration.Zero)}
+    a [NoSuchElementException] should be thrownBy None.toFuture.getNow
   }
 
   it should "transform `Option`s" in {
-    Some("string").transform(s => Some(s.toUpperCase), Some("none")).get should be ("STRING")
-    Some("string").transform(s => Some(s.toUpperCase), None).get should be ("STRING")
+    Some("string").transform(s => Some(s.toUpperCase), Some("none")).value shouldBe "STRING"
+    Some("string").transform(s => Some(s.toUpperCase), None).value shouldBe "STRING"
     Some("string").transform(_ => None, Some("none")) shouldBe empty
     Some("string").transform(_ => None, None) shouldBe empty
 
-    None.transform((_: Nothing) => Some("some"), Some("none")).get should be ("none")
+    None.transform((_: Nothing) => Some("some"), Some("none")).value shouldBe "none"
     None.transform((_: Nothing) => Some("some"), None) shouldBe empty
-    None.transform((_: Nothing) => None, Some("none")).get should be ("none")
+    None.transform((_: Nothing) => None, Some("none")).value shouldBe "none"
     None.transform((_: Nothing) => None, None) shouldBe empty
   }
 
   it should "invert `Option`s" in {
     Some("string").invert("none") shouldBe empty
-    None.invert("some").get should be ("some")
+    None.invert("some").value shouldBe "some"
 
     Some("string").invertWith(Some("none")) shouldBe empty
     Some("string").invertWith(None) shouldBe empty
-    None.invertWith(Some("some")).get should be ("some")
+    None.invertWith(Some("some")).value shouldBe "some"
     None.invertWith(None) shouldBe empty
   }
 
   it should "create equivalent `Future`s from `Try`s" in {
-    Await.result(Try("string").toFuture, Duration.Zero) should equal ("string")
+    Try("string").toFuture.getNow shouldEqual "string"
 
     val ex = new Exception("foo")
-    Await.result(Try(throw ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
+    Try(throw ex).toFuture.failed.getNow should be theSameInstanceAs ex
   }
 
   it should "create equivalent `Future`s from `Either`s" in {
-    Await.result(Right("string").toFuture, Duration.Zero) should equal ("string")
+    Right[Throwable, String]("string").toFuture.getNow shouldEqual "string"
 
     val ex = new Exception("foo")
-    Await.result(Left(ex).toFuture.failed, Duration.Zero) should be theSameInstanceAs ex
+    Left(ex).toFuture.failed.getNow should be theSameInstanceAs ex
   }
 
   it should "test `SortedMap`s for ordered equality" in {
@@ -163,26 +131,13 @@ class ExtraPredefTest extends FlatSpec with Matchers {
     sm orderedEquals SortedMap(3 -> 3, 2 -> 2, 1 -> 1) shouldBe true
     sm orderedEquals SortedMap(1 -> 1, 2 -> 2, 3 -> 3)(Ordering[Int].reverse) shouldBe false
   }
-
-  it should "convert collections to `SortedMap`s" in {
-    val sm1 = SortedMap(1 -> 1, 2 -> 2, 3 -> 3)
-
-    sm1.toSortedMap should be theSameInstanceAs sm1
-    sm1.toSeq shouldEqual Seq(1 -> 1, 2 -> 2, 3 -> 3)
-    Seq(3 -> 3, 2 -> 2, 1 -> 1).toSortedMap orderedEquals sm1 shouldBe true
-
-    val reverseOrdering = Ordering[Int].reverse
-
-    val sm2 = sm1.toSortedMap(reverseOrdering)
-    sm2 orderedEquals sm1 shouldBe false
-
-    sm2.toSortedMap(reverseOrdering) should be theSameInstanceAs sm2
-    sm2.toSeq shouldEqual Seq(3 -> 3, 2 -> 2, 1 -> 1)
-    Seq(1 -> 1, 2 -> 2, 3 -> 3).toSortedMap(reverseOrdering) orderedEquals sm2 shouldBe true
-  }
 }
 
 object ExtraPredefTest {
+  implicit final class FinishedFuture[A](private val self: Future[A]) extends AnyVal {
+    def getNow: A = Await.result(self, Duration.Zero)
+  }
+
   case class BasicOrdered(int: Int) extends Ordered[BasicOrdered] {
     override def compare(that: BasicOrdered): Int = this.int compare that.int
   }
