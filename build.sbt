@@ -1,44 +1,49 @@
-organization := "com.nthportal"
-name := "extra-predef"
-description := "An extra Predef for Scala."
-
-val rawVersion = "1.1.1"
-isSnapshot := false
-version := rawVersion + {if (isSnapshot.value) "-SNAPSHOT" else ""}
-
-scalaVersion := "2.12.10"
-
-crossScalaVersions := Seq(
+ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / autoAPIMappings := true
+ThisBuild / crossScalaVersions := Seq(
   "2.12.10",
   "2.13.3"
 )
 
-libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.1.1+" % Test
+// publishing info
+inThisBuild(
+  Seq(
+    organization := "com.nthportal",
+    homepage := Some(url("https://github.com/NthPortal/extra-predef")),
+    licenses := Seq("The Apache License, Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+    developers := List(
+      Developer(
+        "NthPortal",
+        "April | Princess",
+        "dev@princess.lgbt",
+        url("https://nthportal.com")
+      )
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/NthPortal/extra-predef"),
+        "scm:git:git@github.com:NthPortal/extra-predef.git",
+        "scm:git:git@github.com:NthPortal/extra-predef.git"
+      )
+    )
+  )
 )
 
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
-}
-
-publishMavenStyle := true
-licenses := Seq("The Apache License, Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
-homepage := Some(url("https://github.com/NthPortal/extra-predef"))
-
-pomExtra :=
-  <scm>
-    <url>https://github.com/NthPortal/extra-predef</url>
-    <connection>scm:git:git@github.com:NthPortal/extra-predef.git</connection>
-    <developerConnection>scm:git:git@github.com:NthPortal/extra-predef.git</developerConnection>
-  </scm>
-    <developers>
-      <developer>
-        <id>NthPortal</id>
-        <name>NthPortal</name>
-        <url>https://github.com/NthPortal</url>
-      </developer>
-    </developers>
+lazy val extraPredef = project
+  .in(file("."))
+  .settings(
+    name := "extra-predef",
+    description := "An extra Predef for Scala.",
+    mimaPreviousArtifacts := Set().map(organization.value %% name.value % _),
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % "3.2.2" % Test
+    ),
+    scalacOptions ++= {
+      if (isSnapshot.value) Nil
+      else
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, 13)) => Seq("-opt:l:inline", "-opt-inline-from:com.nthportal.extrapredef.**")
+          case _             => Nil
+        }
+    }
+  )
