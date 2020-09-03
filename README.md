@@ -11,14 +11,25 @@ An extra Predef for Scala
 
 ### SBT
 ```
-"com.nthportal" %% "extra-predef" % "1.1.0"
+"com.nthportal" %% "extra-predef" % "1.1.1"
 ```
 
 ### Maven
+
+### Scala 2.12
 ```
 <dependency>
   <groupId>com.nthportal</groupId>
   <artifactId>extra-predef_2.12</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
+</dependency>
+```
+
+### Scala 2.13
+```
+<dependency>
+  <groupId>com.nthportal</groupId>
+  <artifactId>extra-predef_2.13</artifactId>
+  <version>1.1.1</version>
 </dependency>
 ```
