@@ -1,18 +1,9 @@
-# Ignore everything by default
-/*
+# IntelliJ
+.idea
 
-# Source files
-!/src
+# Metals
+.bloop
+.metals
 
-# Project configuration files
-!/project
-project/target
-project/project
-!build.sbt
-
-# Assorted
-!.gitignore
-!LICENSE
-!*.md
-!.travis.yml
-!.coveralls.yml
+# Build
+target/

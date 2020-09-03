@@ -1,6 +1,8 @@
 package com.nthportal.extrapredef
 
-import org.scalatest.{FlatSpec, Matchers, OptionValues}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.OptionValues
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.{Await, Future}
@@ -8,7 +10,7 @@ import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 import scala.util.Try
 
-class ExtraPredefTest extends FlatSpec with Matchers with OptionValues {
+class ExtraPredefTest extends AnyFlatSpec with Matchers with OptionValues {
   import ExtraPredef._
   import ExtraPredefTest._
 
@@ -17,19 +19,19 @@ class ExtraPredefTest extends FlatSpec with Matchers with OptionValues {
   behavior of "ExtraPredef"
 
   it should "require state correctly" in {
-    an [IllegalStateException] should be thrownBy requireState(false)
+    an[IllegalStateException] should be thrownBy requireState(false)
     noException should be thrownBy requireState(true)
 
-    an [IllegalStateException] should be thrownBy requireState(requirement = false, "message")
+    an[IllegalStateException] should be thrownBy requireState(requirement = false, "message")
     noException should be thrownBy requireState(requirement = true, "message")
   }
 
   it should "handle impossible conditions correctly" in {
-    an [AssertionError] should be thrownBy !!!
+    an[AssertionError] should be thrownBy !!!
   }
 
   it should "check for null correctly" in {
-    a [NullPointerException] should be thrownBy _null.nonNull
+    a[NullPointerException] should be thrownBy _null.nonNull
 
     noException should be thrownBy "a string".nonNull
   }
@@ -80,13 +82,13 @@ class ExtraPredefTest extends FlatSpec with Matchers with OptionValues {
 
     val t2 = None.toTry
     t2.isFailure shouldBe true
-    a [NoSuchElementException] should be thrownBy t2.get
+    a[NoSuchElementException] should be thrownBy t2.get
   }
 
   it should "create equivalent `Future`s from `Option`s" in {
     Some("string").toFuture.getNow shouldEqual "string"
 
-    a [NoSuchElementException] should be thrownBy None.toFuture.getNow
+    a[NoSuchElementException] should be thrownBy None.toFuture.getNow
   }
 
   it should "transform `Option`s" in {
