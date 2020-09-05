@@ -18,7 +18,7 @@ before_install:
 script: sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues coverage test scalafmtCheckAll scalafmtSbtCheck
 
 after_success:
-  - sbt coverageReport coveralls
+  - sbt coverageAggregate coveralls
 
 stages:
   - name: test
