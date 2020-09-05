@@ -8,7 +8,7 @@ import scala.util.Try
  * An extra `Predef` which has more methods and implicit classes
  * than [[scala.Predef]].
  */
-trait ExtraPredef {
+trait ExtraPredef extends VersionSpecificExtraPredef {
   import ExtraPredef._
 
   /**
