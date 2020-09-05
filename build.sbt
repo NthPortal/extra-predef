@@ -34,7 +34,7 @@ lazy val extraPredef = project
   .settings(
     name := "extra-predef",
     description := "An extra Predef for Scala.",
-    mimaPreviousArtifacts := Set().map(organization.value %% name.value % _),
+    mimaPreviousArtifacts := Set("2.0.0").map(organization.value %% name.value % _),
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.2" % Test
     ),

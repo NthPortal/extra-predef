@@ -14,3 +14,10 @@ An extra Predef for Scala.
 ```scala
 libraryDependencies += "com.nthportal" %% "extra-predef" % "2.0.0"
 ```
+
+## Usage
+
+You can use the definitions in the extra Predef either by importing
+`com.nthportal.extrapredef.ExtraPredef._` wherever needed/desired,
+or by using the `scalac` option
+`-Yimports:java.lang,scala,scala.Predef,com.nthportal.extrapredef.ExtraPredef`.
