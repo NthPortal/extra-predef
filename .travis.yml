@@ -30,3 +30,4 @@ jobs:
     - stage: release
       env: ADOPTOPENJDK=8
       script: sbt ci-release
+      after_success:
