@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / autoAPIMappings := true
 ThisBuild / crossScalaVersions := Seq(
   "2.12.10",
