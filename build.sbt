@@ -36,7 +36,7 @@ lazy val extraPredef = project
     description := "An extra Predef for Scala.",
     mimaPreviousArtifacts := Set("2.0.0").map(organization.value %% name.value % _),
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.2.5" % Test
+      "org.scalatest" %% "scalatest" % "3.2.6" % Test
     ),
     scalacOptions ++= {
       if (isSnapshot.value) Nil
