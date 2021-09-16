@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / scalaVersion    := "2.13.6"
 ThisBuild / autoAPIMappings := true
 ThisBuild / crossScalaVersions := Seq(
   "2.12.13",
@@ -8,10 +8,10 @@ ThisBuild / crossScalaVersions := Seq(
 // publishing info
 inThisBuild(
   Seq(
-    organization := "com.nthportal",
+    organization  := "com.nthportal",
     versionScheme := Some("early-semver"),
-    homepage := Some(url("https://github.com/NthPortal/extra-predef")),
-    licenses := Seq("The Apache License, Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+    homepage      := Some(url("https://github.com/NthPortal/extra-predef")),
+    licenses      := Seq("The Apache License, Version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     developers := List(
       Developer(
         "NthPortal",
@@ -128,8 +128,8 @@ inThisBuild(
 lazy val extraPredef = project
   .in(file("."))
   .settings(
-    name := "extra-predef",
-    description := "An extra Predef for Scala.",
+    name                  := "extra-predef",
+    description           := "An extra Predef for Scala.",
     mimaPreviousArtifacts := Set("2.0.0").map(organization.value %% name.value % _),
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.9" % Test
