@@ -8,23 +8,24 @@ object OrderingExtras {
     self: Ordering[T]#Ops =>
 
     /**
-     * Returns `true` if `lhs` and `rhs` are unequal by their
-     * [[java.lang.Comparable natural ordering]]; `false` otherwise.
-     * (That is, returns `true` if `lhs` is greater than or less than `rhs`.)
+     * Returns `true` if `lhs` and `rhs` are unequal by their [[java.lang.Comparable natural ordering]]; `false`
+     * otherwise. (That is, returns `true` if `lhs` is greater than or less than `rhs`.)
      *
-     * @param rhs the thing to which to compare `lhs`
-     * @return `true` if `lhs` and `rhs` are unequal by their natural ordering
+     * @param rhs
+     *   the thing to which to compare `lhs`
+     * @return
+     *   `true` if `lhs` and `rhs` are unequal by their natural ordering
      */
     def <>(rhs: T): Boolean = !this.equiv(rhs)
 
     /**
-     * Returns `true` if `lhs` and `rhs` are equal by their
-     * [[java.lang.Comparable natural ordering]]; `false` otherwise.
-     * (That is, returns `true` if `lhs` is neither greater than nor less
-     * than `rhs`.)
+     * Returns `true` if `lhs` and `rhs` are equal by their [[java.lang.Comparable natural ordering]]; `false`
+     * otherwise. (That is, returns `true` if `lhs` is neither greater than nor less than `rhs`.)
      *
-     * @param rhs the thing to which to compare `lhs`
-     * @return `true` if `lhs` and `rhs` are equal by their natural ordering
+     * @param rhs
+     *   the thing to which to compare `lhs`
+     * @return
+     *   `true` if `lhs` and `rhs` are equal by their natural ordering
      */
     def !<>(rhs: T): Boolean = this.equiv(rhs)
   }
