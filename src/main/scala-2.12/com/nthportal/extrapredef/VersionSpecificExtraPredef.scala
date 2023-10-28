@@ -28,12 +28,12 @@ object VersionSpecificExtraPredef {
      * non-zero, or else the result of `other`s compare function.
      *
      * @example
-     * {{{
+     *   {{{
      * case class Pair(a: Int, b: Int)
      *
      * val pairOrdering = Ordering.by[Pair, Int](_.a)
      *                             .orElse(Ordering.by[Pair, Int](_.b))
-     * }}}
+     *   }}}
      *
      * @param other
      *   an Ordering to use if this Ordering returns zero
@@ -55,12 +55,12 @@ object VersionSpecificExtraPredef {
      * This function is equivalent to passing the result of `Ordering.by(f)` to `orElse`.
      *
      * @example
-     * {{{
+     *   {{{
      * case class Pair(a: Int, b: Int)
      *
      * val pairOrdering = Ordering.by[Pair, Int](_.a)
      *                             .orElseBy[Int](_.b)
-     * }}}
+     *   }}}
      */
     def orElseBy[S](f: T => S)(implicit ord: Ordering[S]): Ordering[T] =
       (x, y) => {
